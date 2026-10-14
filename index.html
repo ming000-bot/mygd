@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>功德无量</title>
+    <style>
+        /* 基础样式重置 */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: "Microsoft YaHei", sans-serif;
+            background-color: #f5e6c8;
+            background-image: url('bin/milefo.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2vh 0;
+        }
+
+        /* 总功德文字样式 */
+        .total-merit {
+            font-size: clamp(28px, 6vw, 52px);
+            color: #5a2e0c; /* 深棕色 */
+            margin-bottom: clamp(20px, 6vh, 60px);
+            text-shadow: 
+                1px 1px 0 #ffe9b0,
+                -1px -1px 0 #ffe9b0,
+                1px -1px 0 #ffe9b0,
+                -1px 1px 0 #ffe9b0,
+                2px 2px 4px rgba(0,0,0,0.2);
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .click-area {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: clamp(150px, 50vw, 250px);
+            height: clamp(150px, 50vw, 250px);
+        }
+
+        .image-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+            position: relative;
+            z-index: 10;
+        }
+
+        .image-wrapper:active {
+            transform: scale(0.95);
+        }
+
+        .image-wrapper img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; 
+            background: transparent;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .merit-anim {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(24px, 5vw, 40px);
+            font-weight: bold;
+            color: #8b1a1a;
+            white-space: nowrap; 
+            pointer-events: none;
+            opacity: 0;
+            z-index: 20;
+            text-shadow: 
+                1px 1px 0 #ffe9b0,
+                -1px -1px 0 #ffe9b0,
+                1px -1px 0 #ffe9b0,
+                -1px 1px 0 #ffe9b0,
+                2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideUpFade {
+            0% { opacity: 1; top: 50%; }
+            100% { opacity: 0; top: -80px; }
+        }
+
+        .animate-up {
+            animation: slideUpFade 0.8s ease-out forwards;
+        }
+
+        /* 底部控制区域容器（包含按钮和音量条） */
+        .bottom-panel {
+            position: absolute;
+            bottom: clamp(20px, 6vh, 60px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px; /* 按钮和音量条之间的距离 */
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        /* 按钮容器 */
+        .controls {
+            display: flex;
+            gap: clamp(20px, 8vw, 60px);
+            justify-content: center;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: clamp(18px, 4vw, 28px);
+            font-weight: bold;
+            color: #5a2e0c;
+            background: linear-gradient(to bottom, #ffe9b0, #f5c842);
+            border: 2px solid #b8860b;
+            border-radius: 50px;
+            padding: clamp(8px, 1.5vh, 14px) clamp(20px, 5vw, 40px);
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.6);
+            transition: transform 0.1s, box-shadow 0.1s, filter 0.2s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.6);
+        }
+
+        .btn:hover { filter: brightness(1.05); }
+
+        .btn-icon { font-size: 1.2em; line-height: 1; }
+
+        /* ========== 新增：音量控制条样式 ========== */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        .volume-icon {
+            font-size: clamp(16px, 3vw, 22px);
+            color: #5a2e0c;
+            /* 图标也加上描边效果，与文字一致 */
+            text-shadow: 
+                1px 1px 0 #ffe9b0,
+                -1px -1px 0 #ffe9b0,
+                1px -1px 0 #ffe9b0,
+                -1px 1px 0 #ffe9b0;
+            user-select: none;
+        }
+
+        /* 滑动条主体 */
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #b8860b; /* 轨道默认底色，会被 JS 动态覆盖渐变 */
+            outline: none;
+            cursor: pointer;
+            /* 让轨道有内阴影，更立体 */
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* 滑块（拇指）样式 */
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #5a2e0c; /* 与总功德文字颜色一致 */
+            border: 2px solid #ffe9b0; /* 淡黄色描边 */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        /* Firefox 滑块样式 */
+        .volume-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #5a2e0c;
+            border: 2px solid #ffe9b0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 480px) {
+            .total-merit { margin-bottom: 20px; }
+            .bottom-panel { bottom: 20px; gap: 10px; }
+            .controls { gap: 20px; }
+            .btn { padding: 8px 20px; }
+            .volume-container { max-width: 220px; }
+        }
+
+        /* 横屏或矮屏适配 */
+        @media (max-height: 500px) {
+            .total-merit { margin-bottom: 10px; font-size: 24px; }
+            .click-area { width: 120px; height: 120px; }
+            .bottom-panel { bottom: 8px; gap: 5px; }
+            .btn { font-size: 16px; padding: 6px 16px; }
+            .volume-container { max-width: 200px; }
+            .volume-slider { height: 6px; }
+            .volume-slider::-webkit-slider-thumb { width: 16px; height: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 总功德显示 -->
+        <div class="total-merit" id="totalMeritDisplay">总功德: ***</div>
+
+        <!-- 点击区域 -->
+        <div class="click-area">
+            <div class="image-wrapper" id="clickBtn">
+                <img src="bin/muyu.png" alt="点击图片">
+            </div>
+        </div>
+
+        <!-- 底部控制面板：按钮 + 音量条 -->
+        <div class="bottom-panel">
+            <!-- 播放/停止按钮 -->
+            <div class="controls">
+                <button class="btn" id="playBtn">
+                    <span class="btn-icon">▶</span>
+                    <span>播放</span>
+                </button>
+                <button class="btn" id="stopBtn">
+                    <span class="btn-icon">■</span>
+                    <span>停止</span>
+                </button>
+            </div>
+
+            <!-- ========== 新增：背景音乐音量控制条 ========== -->
+            <div class="volume-container">
+                <span class="volume-icon">🔊</span>
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="0.5">
+            </div>
+        </div>
+    </div>
+
+    <!-- 音频标签 -->
+    <audio id="clickSound" src="bin/muyusheng.wav"></audio>
+    <audio id="bgMusic" src="bin/yinyue.mp3" loop></audio>
+
+    <script>
+        // 初始化功德数值
+        let meritCount = 0;
+        const totalMeritDisplay = document.getElementById('totalMeritDisplay');
+        const clickBtn = document.getElementById('clickBtn');
+        const clickSound = document.getElementById('clickSound');
+        const bgMusic = document.getElementById('bgMusic');
+        const playBtn = document.getElementById('playBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const clickArea = document.querySelector('.click-area');
+        
+        // ========== 新增：获取音量控制元素 ==========
+        const volumeSlider = document.getElementById('volumeSlider');
+
+        // 更新总功德显示的函数
+        function updateMeritDisplay() {
+            totalMeritDisplay.textContent = `总功德: ${meritCount}`;
+        }
+
+        // 点击图片的事件处理
+        function handleClick() {
+            // 1. 播放点击音效
+            clickSound.currentTime = 0; 
+            clickSound.play().catch(e => console.log("音效播放被阻止或出错:", e));
+
+            // 2. 功德数增加
+            meritCount++;
+            updateMeritDisplay();
+
+            // 3. 创建并显示 "功德 +1" 动画
+            const animText = document.createElement('div');
+            animText.className = 'merit-anim';
+            animText.textContent = '功德 +1';
+            
+            const existingAnim = document.querySelector('.merit-anim');
+            if (existingAnim) {
+                existingAnim.remove();
+            }
+
+            clickArea.appendChild(animText);
+            void animText.offsetWidth; 
+            animText.classList.add('animate-up');
+
+            animText.addEventListener('animationend', () => {
+                animText.remove();
+            });
+        }
+
+        clickBtn.addEventListener('click', handleClick);
+
+        // 播放背景音乐
+        playBtn.addEventListener('click', () => {
+            bgMusic.play().catch(e => console.log("背景音乐播放被阻止或出错:", e));
+        });
+
+        // 停止背景音乐
+        stopBtn.addEventListener('click', () => {
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+        });
+
+        // ========== 新增：音量控制逻辑 ==========
+        // 1. 初始化音量（默认 50%）
+        bgMusic.volume = volumeSlider.value;
+
+        // 2. 创建更新滑动条背景渐变的函数，让轨道已播放部分显示深色
+        function updateSliderBackground(value) {
+            const percent = (value * 100) + '%';
+            // 从左到右：深棕色（已播放） -> 深棕色 -> 浅色（未播放） -> 浅色
+            volumeSlider.style.background = `linear-gradient(to right, #5a2e0c 0%, #5a2e0c ${percent}, #ffe9b0 ${percent}, #ffe9b0 100%)`;
+        }
+
+        // 3. 监听滑动条拖动事件
+        volumeSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            bgMusic.volume = val;            // 实时更新音乐音量
+            updateSliderBackground(val);     // 实时更新滑动条颜色
+        });
+
+        // 4. 页面加载时初始化滑动条背景
+        updateSliderBackground(volumeSlider.value);
+
+        // 空格键快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.key === ' ') {
+                e.preventDefault();
+                if (document.activeElement === playBtn || document.activeElement === stopBtn) {
+                    return;
+                }
+                handleClick();
+            }
+        });
+
+        window.onload = () => {
+            updateMeritDisplay();
+        };
+    </script>
+</body>
+</html>
