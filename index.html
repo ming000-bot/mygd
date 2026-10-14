@@ -8,6 +8,8 @@
         /* 基础样式重置 */
         *, *::before, *::after {
             box-sizing: border-box;
+            /* 全局移除移动端点击高亮 */
+            -webkit-tap-highlight-color: transparent;
         }
         body, html {
             margin: 0;
@@ -22,6 +24,10 @@
             background-position: center;
             background-repeat: no-repeat;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            /* 防止长按选中文字、长按弹出菜单 */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .container {
@@ -38,7 +44,7 @@
         /* 总功德文字样式 */
         .total-merit {
             font-size: clamp(28px, 6vw, 52px);
-            color: #5a2e0c; /* 深棕色 */
+            color: #5a2e0c;
             margin-bottom: clamp(20px, 6vh, 60px);
             text-shadow: 
                 1px 1px 0 #ffe9b0,
@@ -57,6 +63,8 @@
             align-items: center;
             width: clamp(150px, 50vw, 250px);
             height: clamp(150px, 50vw, 250px);
+            /* 去掉点击高亮 */
+            -webkit-tap-highlight-color: transparent;
         }
 
         .image-wrapper {
@@ -69,6 +77,10 @@
             transition: transform 0.1s;
             position: relative;
             z-index: 10;
+            /* 去掉点击高亮 */
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
         }
 
         .image-wrapper:active {
@@ -80,7 +92,12 @@
             max-height: 100%;
             object-fit: contain; 
             background: transparent;
+            border: none;
+            /* 去掉图片默认拖拽和点击高亮 */
             -webkit-tap-highlight-color: transparent;
+            -webkit-user-drag: none;
+            user-select: none;
+            pointer-events: none; /* 让点击事件透传到父级 wrapper，避免图片单独响应 */
         }
 
         .merit-anim {
@@ -112,26 +129,24 @@
             animation: slideUpFade 0.8s ease-out forwards;
         }
 
-        /* 底部控制区域容器（包含按钮和音量条） */
+        /* 底部控制区域容器 */
         .bottom-panel {
             position: absolute;
             bottom: clamp(20px, 6vh, 60px);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px; /* 按钮和音量条之间的距离 */
+            gap: 15px;
             width: 100%;
             padding: 0 20px;
         }
 
-        /* 按钮容器 */
         .controls {
             display: flex;
             gap: clamp(20px, 8vw, 60px);
             justify-content: center;
         }
 
-        /* 按钮样式 */
         .btn {
             display: flex;
             align-items: center;
@@ -160,7 +175,7 @@
 
         .btn-icon { font-size: 1.2em; line-height: 1; }
 
-        /* ========== 新增：音量控制条样式 ========== */
+        /* 音量控制条样式 */
         .volume-container {
             display: flex;
             align-items: center;
@@ -172,7 +187,6 @@
         .volume-icon {
             font-size: clamp(16px, 3vw, 22px);
             color: #5a2e0c;
-            /* 图标也加上描边效果，与文字一致 */
             text-shadow: 
                 1px 1px 0 #ffe9b0,
                 -1px -1px 0 #ffe9b0,
@@ -181,29 +195,27 @@
             user-select: none;
         }
 
-        /* 滑动条主体 */
         .volume-slider {
             -webkit-appearance: none;
             appearance: none;
             flex: 1;
             height: 8px;
             border-radius: 4px;
-            background: #b8860b; /* 轨道默认底色，会被 JS 动态覆盖渐变 */
+            background: #b8860b;
             outline: none;
             cursor: pointer;
-            /* 让轨道有内阴影，更立体 */
             box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* 滑块（拇指）样式 */
         .volume-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #5a2e0c; /* 与总功德文字颜色一致 */
-            border: 2px solid #ffe9b0; /* 淡黄色描边 */
+            background: #5a2e0c;
+            border: 2px solid #ffe9b0;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             cursor: pointer;
             transition: transform 0.1s;
@@ -213,7 +225,6 @@
             transform: scale(1.1);
         }
 
-        /* Firefox 滑块样式 */
         .volume-slider::-moz-range-thumb {
             width: 20px;
             height: 20px;
@@ -258,9 +269,8 @@
             </div>
         </div>
 
-        <!-- 底部控制面板：按钮 + 音量条 -->
+        <!-- 底部控制面板 -->
         <div class="bottom-panel">
-            <!-- 播放/停止按钮 -->
             <div class="controls">
                 <button class="btn" id="playBtn">
                     <span class="btn-icon">▶</span>
@@ -272,7 +282,6 @@
                 </button>
             </div>
 
-            <!-- ========== 新增：背景音乐音量控制条 ========== -->
             <div class="volume-container">
                 <span class="volume-icon">🔊</span>
                 <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="0.5">
@@ -294,16 +303,12 @@
         const playBtn = document.getElementById('playBtn');
         const stopBtn = document.getElementById('stopBtn');
         const clickArea = document.querySelector('.click-area');
-        
-        // ========== 新增：获取音量控制元素 ==========
         const volumeSlider = document.getElementById('volumeSlider');
 
-        // 更新总功德显示的函数
         function updateMeritDisplay() {
             totalMeritDisplay.textContent = `总功德: ${meritCount}`;
         }
 
-        // 点击图片的事件处理
         function handleClick() {
             // 1. 播放点击音效
             clickSound.currentTime = 0; 
@@ -334,36 +339,29 @@
 
         clickBtn.addEventListener('click', handleClick);
 
-        // 播放背景音乐
         playBtn.addEventListener('click', () => {
             bgMusic.play().catch(e => console.log("背景音乐播放被阻止或出错:", e));
         });
 
-        // 停止背景音乐
         stopBtn.addEventListener('click', () => {
             bgMusic.pause();
             bgMusic.currentTime = 0;
         });
 
-        // ========== 新增：音量控制逻辑 ==========
-        // 1. 初始化音量（默认 50%）
+        // 音量控制逻辑
         bgMusic.volume = volumeSlider.value;
 
-        // 2. 创建更新滑动条背景渐变的函数，让轨道已播放部分显示深色
         function updateSliderBackground(value) {
             const percent = (value * 100) + '%';
-            // 从左到右：深棕色（已播放） -> 深棕色 -> 浅色（未播放） -> 浅色
             volumeSlider.style.background = `linear-gradient(to right, #5a2e0c 0%, #5a2e0c ${percent}, #ffe9b0 ${percent}, #ffe9b0 100%)`;
         }
 
-        // 3. 监听滑动条拖动事件
         volumeSlider.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            bgMusic.volume = val;            // 实时更新音乐音量
-            updateSliderBackground(val);     // 实时更新滑动条颜色
+            bgMusic.volume = val;
+            updateSliderBackground(val);
         });
 
-        // 4. 页面加载时初始化滑动条背景
         updateSliderBackground(volumeSlider.value);
 
         // 空格键快捷键
